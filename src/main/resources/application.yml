@@ -1,0 +1,196 @@
+server:
+  # 端口
+  port: 8290
+
+# 连接数据库
+spring:
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/aitourism?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8
+    username: root
+    password: 12345
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  config:
+    import: "optional:classpath:application-local.yml"
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+  output:
+    ansi:
+      enabled: ALWAYS
+  task:
+    scheduling:
+      pool:
+        size: 1
+  # 现在使用的是spring data redis
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+      database: 0
+      ttl: 1800
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
+# MCP服务配置
+mcp:
+  heartbeat-interval-seconds: 300       # 5分钟
+  ping-timeout-seconds: 5
+  # MCP工具结果裁剪配置
+  result-truncation:
+    enabled: true                       # 是否启用结果裁剪功能
+    max-length: 2000                    # 最大结果长度（字符数），考虑免费API的4096 token限制
+    smart-truncation: true              # 是否启用智能裁剪（在自然断点处截断）
+    preserve-structure: true            # 是否保持JSON等结构化数据的完整性
+    # 裁剪策略配置
+    strategy: "smart"                   # 裁剪策略：smart(智能), simple(简单), summary(摘要)
+    # 不同工具的不同裁剪长度限制（格式：工具名:长度,工具名:长度）
+    tool-specific-limits: "baidu_search:1500,fetchJuejinArticle:1000"
+
+  clients:
+    # 高德地图的mcp server，在开发者中心中申请key
+    - name: "amap"
+      sse-url: "https://mcp.amap.com/sse?key=xxx"
+      log-requests: true
+      log-responses: true
+      timeout-seconds: 600
+    # - name: "local"
+    #   sse-url: "http://localhost:3000/sse"
+    #   log-requests: true
+    #   log-responses: true
+    #   timeout-seconds: 600
+
+openweather:
+  api-key: "7177480ee0508fec53f291a71cc3c929"
+
+# OpenAI配置（主模型）
+openai:
+  api-key: "${OPENAI_API_KEY:}"
+  base-url: "${OPENAI_BASE_URL:https://api.deepseek.com}"
+  model-name: "${OPENAI_MODEL_NAME:deepseek-chat}"
+  max-output-tokens: "${OPENAI_MAX_OUTPUT_TOKENS:800}"
+
+# OpenAI配置（小模型）
+openai-small:
+  api-key: "${OPENAI_SMALL_API_KEY:}"
+  base-url: "${OPENAI_SMALL_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}"
+  model-name: "${OPENAI_SMALL_MODEL_NAME:qwen-turbo}"
+  max-output-tokens: "${OPENAI_SMALL_MAX_OUTPUT_TOKENS:800}"
+
+# HTTP客户端配置
+http:
+  client:
+    connect-timeout: 30000
+    read-timeout: 120000
+    max-connections: 100
+    keep-alive-duration: 300000
+
+# 应用配置
+app:
+  mcp:
+    health-check-interval: 300000  # 5分钟
+    retry-attempts: 3
+    retry-delay: 5000
+
+
+# MyBatis 写数据库
+mybatis:
+  mapper-locations: classpath:/mapper/*.xml
+  type-aliases-package: com.example.aitourism.entity
+  configuration:
+    map-underscore-to-camel-case: true
+
+
+# 日志
+logging:
+  file:
+    name: app.log
+    # 或者使用 path
+    # path: ./logs
+  level:
+    com.example.aitourism: INFO
+    org.springframework.web: INFO
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 30
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%highlight(%-5level)] [%thread] [%X{traceId}] %-5level %logger{36}:%line - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%highlight(%-5level)] [%thread] [%X{traceId}] %-5level %logger{36}:%line - %msg%n"
+
+
+# Sa-Token & JWT 配置
+sa-token:
+  token-name: Authorization
+  is-read-cookie: false
+  is-read-body: false
+  is-read-header: true
+  token-prefix: Bearer
+  timeout: 300   # 10分钟过期，然后前端会refresh刷新
+  active-timeout: -1
+  is-share: false
+  is-log: true
+  jwt-secret-key: "please-change-me-very-strong"
+
+
+# 会话隔离记忆管理配置
+ai:
+  memory:
+    redis:
+      host: localhost
+      port: 6379
+      password: 
+      ttl: 1800  # 1小时过期，1800
+      key-prefix: "ai:memory:"
+
+# 会话隔离相关配置
+session:
+  isolation:
+    enabled: true
+    max-sessions-per-user: 50
+    session-timeout: 3600  # 会话超时时间（秒）
+    memory-cache-size: 2000  # 记忆缓存大小
+
+# A/B测试配置 - 针对单人测试优化
+ab-test:
+  tool-cache:
+    enabled: true
+    target-hit-rate: 0.8
+    record-no-cache-baseline: true
+    no-cache-test-ratio: 0.3  # 30%的请求不使用缓存，快速收集对比数据
+  service-cache:
+    enabled: true
+    record-no-cache-baseline: true
+    no-cache-test-ratio: 0.2  # 20%的请求不使用缓存，快速收集对比数据
+  truncation:
+    enabled: true
+    record-no-truncation-baseline: true
+    no-truncation-test-ratio: 0.2  # 20%的请求不使用裁剪，快速收集对比数据
+
+# 监控配置
+# 访问地址：
+    # 健康检查：http://localhost:8290/actuator/health
+    # 系统信息：http://localhost:8290/actuator/info
+    # Prometheus指标：http://localhost:8290/actuator/prometheus
+    # 线程转储：http://localhost:8290/actuator/threaddump
+    # 环境变量：http://localhost:8290/actuator/env
+    # 日志：http://localhost:8290/actuator/logfile
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics,threaddump,env,logfile
+  endpoint:
+    health:
+      # 配置健康检查是否显示详细信息
+      show-details: always
+    prometheus:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        step: 10s
+        registry-type: classic
