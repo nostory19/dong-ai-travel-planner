@@ -286,6 +286,7 @@ public class MemoryAssistantServiceFactory {
      */
     private void loadChatHistoryToMemory(String sessionId, MessageWindowChatMemory chatMemory) {
         try {
+            // 查询的历史消息，按照时间升序排列
             var dbMessages = chatMessageMapper.findBySessionId(sessionId);
             if (dbMessages == null || dbMessages.isEmpty()) {
                 log.debug("为会话 {} 没有历史对话", sessionId);

@@ -242,6 +242,7 @@ public class MemoryChatServiceImpl implements ChatService {
     // 获取当前会话历史
     @Override
     public ChatHistoryResponse getHistory(String sessionId) {
+        // TODO 是不是游标查询
         List<Message> messages = chatMessageMapper.findBySessionId(sessionId);
         List<ChatHistoryDTO> result = new ArrayList<>();
         for (Message m : messages) {

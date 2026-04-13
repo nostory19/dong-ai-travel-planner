@@ -12,6 +12,7 @@ public interface ChatMessageMapper {
             "VALUES(#{msgId}, #{sessionId}, #{userName}, #{role}, #{content}, #{title})")
     int insert(Message message);
 
+    // 使用asc确保按时间升序排列
     @Select("SELECT * FROM t_ai_assistant_chat_messages WHERE session_id = #{sessionId} ORDER BY create_time ASC")
     List<Message> findBySessionId(String sessionId);
 
